@@ -96,11 +96,26 @@ def syntax_ok(app_dir):
     return good / len(files)
 
 
+def _process_rss_mb(pid):
+    """Resident memory of another process in MB, or None if it cannot be read."""
+    try:
+        if sys.platform == "win32":
+            r = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+                               capture_output=True, text=True)
+            fields = next(csv.reader([r.stdout.strip().splitlines()[0]]))
+            kb = "".join(ch for ch in fields[4] if ch.isdigit())  # e.g. "45,312 K"
+            return round(int(kb) / 1024, 1)
+        r = subprocess.run(["ps", "-o", "rss=", "-p", str(pid)], capture_output=True, text=True)
+        return round(int(r.stdout) / 1024, 1) if r.stdout.strip().isdigit() else None
+    except (OSError, IndexError, ValueError, StopIteration):
+        return None
+
+
 def evaluate_app(app_dir, truth_model, startup_timeout=25):
     """Start the app with uvicorn on a temp database, run the functional suite over HTTP."""
     out = {"startup_success": False, "server_memory_mb": None, "summary": None, "checks": [], "error": ""}
     port = _free_port()
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         env = dict(os.environ, DATABASE_URL=f"sqlite:///{tmp}/bench.db")
         log = open(Path(tmp) / "server.log", "w")
         proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1",
@@ -119,9 +134,7 @@ def evaluate_app(app_dir, truth_model, startup_timeout=25):
                 if out["startup_success"]:
                     checks = run_functional_suite(client, copy.deepcopy(truth_model))
                     out.update(checks=checks_to_dicts(checks), summary=summarize(checks))
-                    rss = subprocess.run(["ps", "-o", "rss=", "-p", str(proc.pid)], capture_output=True, text=True)
-                    if rss.stdout.strip().isdigit():
-                        out["server_memory_mb"] = round(int(rss.stdout) / 1024, 1)
+                    out["server_memory_mb"] = _process_rss_mb(proc.pid)
                 else:
                     log.flush()
                     out["error"] = (Path(tmp) / "server.log").read_text()[-300:]
