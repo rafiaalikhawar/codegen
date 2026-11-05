@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/">Home</a> / <a href="/web/{{ entity.slug }}">{{ entity.plural }}</a> / <span>{{ title }}</span></nav>
+<section class="page-head"><div><h1>{{ title }}</h1><p class="muted">Fields marked * are required.</p></div></section>
+{% if errors._form %}<div class="alert error" role="alert">{{ errors._form }}</div>{% endif %}
+<form method="post" action="{{ action }}" class="record-form" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="form-grid">
+  {% for f in fields %}
+  <div class="form-group{% if f.error %} has-error{% endif %}{% if f.type in ('text', 'image') %} wide{% endif %}">
+    <label for="f_{{ f.name }}">{{ f.label }}{% if f.required %} <b class="req">*</b>{% endif %}</label>
+    {% if f.type == "boolean" %}
+      <label class="switch"><input type="checkbox" id="f_{{ f.name }}" name="{{ f.name }}" value="true" {% if f.value in (true, "true", "on") %}checked{% endif %}><span class="slider"></span></label>
+    {% elif f.options is not none %}
+      <select id="f_{{ f.name }}" name="{{ f.name }}" {% if f.required %}required{% endif %}>
+        <option value="">Choose…</option>
+        {% for value, label in f.options %}<option value="{{ value }}" {% if f.value is not none and f.value|string == value|string %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    {% elif f.choices %}
+      <select id="f_{{ f.name }}" name="{{ f.name }}" {% if f.required %}required{% endif %}>
+        {% if not f.required %}<option value="">Choose…</option>{% endif %}
+        {% for c in f.choices %}<option value="{{ c }}" {% if f.value is not none and f.value|string == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    {% elif f.type == "text" %}
+      <textarea id="f_{{ f.name }}" name="{{ f.name }}" rows="4" maxlength="20000" {% if f.required %}required{% endif %}>{{ f.value if f.value is not none else "" }}</textarea>
+    {% else %}
+      <input type="{{ f.input_type }}" id="f_{{ f.name }}" name="{{ f.name }}" value="{{ f.value if f.value is not none else '' }}"
+             {% if f.type == "image" %}placeholder="https://… or /static/img/p1.svg"{% endif %}
+             {% if f.required %}required{% endif %}
+             {% if f.type in ("string", "email") %}maxlength="255"{% endif %}
+             {% if f.type == "integer" %}step="1"{% elif f.type == "float" %}step="any"{% endif %}>
+    {% endif %}
+    {% if f.error %}<p class="field-error" role="alert">{{ f.error }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  </div>
+  <div class="form-actions"><button type="submit" class="btn">Save</button><a class="btn secondary" href="{{ cancel }}">Cancel</a></div>
+</form>
+{% endblock %}

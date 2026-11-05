@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="InventoryManagement">
+    <entities>
+        <entity name="Warehouse">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true" unique="true"/>
+            <attribute name="city" type="string"/>
+        </entity>
+        <entity name="Item">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="sku" type="string" required="true" unique="true"/>
+            <attribute name="description" type="text"/>
+            <attribute name="quantity" type="integer" default="0"/>
+            <attribute name="reorder_level" type="integer" default="10"/>
+        </entity>
+        <entity name="Supplier">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="company" type="string" required="true"/>
+            <attribute name="phone" type="string"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Item" to="Warehouse" type="many-to-one" name="stored_in" required="true"/>
+        <relationship from="Supplier" to="Item" type="many-to-many" name="supplies"/>
+    </relationships>
+    <constraints>
+        <constraint id="qty_nonneg" entity="Item" type="business-rule" pattern="numeric_range"
+                    attribute="quantity" min="0">
+            Item quantity cannot be negative.
+        </constraint>
+        <constraint id="keep_stocked_warehouse" entity="Warehouse" type="business-rule" pattern="forbid_delete_if_linked"
+                    relationship="stored_in">
+            A warehouse that still stores items cannot be deleted.
+        </constraint>
+        <constraint id="supplier_limit" entity="Supplier" type="business-rule" pattern="max_links"
+                    relationship="supplies" side="from" max="4">
+            A supplier can supply at most 4 items.
+        </constraint>
+    </constraints>
+</domain>

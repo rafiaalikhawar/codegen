@@ -1,0 +1,73 @@
+"""REST API for {{ domain_name }} (generated - do not edit by hand)."""
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+from . import engine, schemas
+from .database import get_session
+from .meta import META
+
+router = APIRouter(prefix="/api", tags=["api"])
+
+
+@router.get("/meta")
+def get_meta():
+    return META
+
+{% for entity in entities %}
+
+
+@router.post("/{{ entity.slug }}", response_model=schemas.{{ entity.name }}Read, status_code=201, tags=["{{ entity.name }}"])
+def create_{{ entity.slug }}(data: schemas.{{ entity.name }}Create, session: Session = Depends(get_session)):
+    return engine.create(session, "{{ entity.name }}", data.model_dump(exclude_unset=True))
+
+
+@router.get("/{{ entity.slug }}", response_model=list[schemas.{{ entity.name }}Read], tags=["{{ entity.name }}"])
+def list_{{ entity.slug }}(
+    q: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    session: Session = Depends(get_session),
+):
+    return engine.list_records(session, "{{ entity.name }}", q=q, limit=limit, offset=offset)[0]
+
+
+@router.get("/{{ entity.slug }}/{item_id}", response_model=schemas.{{ entity.name }}Read, tags=["{{ entity.name }}"])
+def get_{{ entity.slug }}(item_id: int, session: Session = Depends(get_session)):
+    return engine.get(session, "{{ entity.name }}", item_id)
+
+
+@router.put("/{{ entity.slug }}/{item_id}", response_model=schemas.{{ entity.name }}Read, tags=["{{ entity.name }}"])
+def update_{{ entity.slug }}(item_id: int, data: schemas.{{ entity.name }}Update, session: Session = Depends(get_session)):
+    return engine.update(session, "{{ entity.name }}", item_id, data.model_dump(exclude_unset=True))
+
+
+@router.delete("/{{ entity.slug }}/{item_id}", tags=["{{ entity.name }}"])
+def delete_{{ entity.slug }}(item_id: int, session: Session = Depends(get_session)):
+    engine.delete(session, "{{ entity.name }}", item_id)
+    return {"message": "Deleted successfully"}
+{% endfor %}
+
+
+@router.get("/{slug}/{item_id}/links/{relationship}", tags=["relationships"])
+def list_links(slug: str, item_id: int, relationship: str, session: Session = Depends(get_session)):
+    entity = engine.entity_by_slug(slug)
+    return [engine.to_dict(o[0], o[1]) for o in engine.linked(session, entity, item_id, relationship)]
+
+
+@router.post("/{slug}/{item_id}/links/{relationship}", status_code=201, tags=["relationships"])
+def add_link(slug: str, item_id: int, relationship: str, body: dict, session: Session = Depends(get_session)):
+    entity = engine.entity_by_slug(slug)
+    target = body.get("target_id")
+    if isinstance(target, bool) or not isinstance(target, int):
+        raise engine.AppError(422, "target_id must be an integer", {"target_id": "must be an integer"})
+    engine.link(session, entity, item_id, relationship, target)
+    return {"message": "Linked"}
+
+
+@router.delete("/{slug}/{item_id}/links/{relationship}/{target_id}", tags=["relationships"])
+def remove_link(slug: str, item_id: int, relationship: str, target_id: int, session: Session = Depends(get_session)):
+    entity = engine.entity_by_slug(slug)
+    engine.unlink(session, entity, item_id, relationship, target_id)
+    return {"message": "Unlinked"}

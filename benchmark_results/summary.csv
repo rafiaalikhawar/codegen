@@ -1,0 +1,11 @@
+config,split,domains,completed,status,notes,input_tokens,output_tokens,total_tokens,generation_latency_s,model_inference_latency_s,server_memory_mb,syntax_success,startup_success,functional_pass_rate,requirement_coverage,relationship_correctness,business_rule_correctness,human_correction_iterations
+A_deterministic,dev,2,2,ok,,0,0,0,0.041,0.0,67.85,1.0,1,0.939,0.887,1.0,0.562,0
+A_oracle,dev,2,2,ok,,0,0,0,0.036,0.0,63.25,1.0,1,1.0,1.0,1.0,1.0,0
+Proposed,dev,2,2,ok,,1587.5,146.5,1734,23.773,23.355,55.9,1.0,1,0.993,0.982,1.0,0.938,0
+B_direct_slm,dev,2,2,ok,,910,1753,2663,216.507,216.296,,1.0,0,0.0,0.0,,,0
+C_large_llm,dev,2,0,unavailable,no suitable large model/provider configured,,,,,,,,,,,,,
+A_deterministic,eval,4,4,ok,,0,0,0,0.052,0.0,68.85,1.0,1,0.946,0.868,1.0,0.542,0
+A_oracle,eval,4,4,ok,,0,0,0,0.037,0.0,69.625,1.0,1,1.0,1.0,1.0,1.0,0
+Proposed,eval,4,4,ok,,2146.25,157,2303.25,20.993,20.628,69.2,1.0,1,0.982,0.952,1.0,0.843,0
+B_direct_slm,eval,4,4,ok,,895.25,1833,2728.25,184.146,184.052,44.7,0.875,0.25,0.022,0.0,0.333,0.0,0
+C_large_llm,eval,4,0,unavailable,no suitable large model/provider configured,,,,,,,,,,,,,

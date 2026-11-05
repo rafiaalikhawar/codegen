@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_cards.html" import card, icon %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<section class="page-head"><div><h1>Search results</h1><p class="muted">for “{{ q }}”</p></div></section>
+{% for name, cards, total in results %}
+<section class="shelf">
+  <div class="shelf-head"><h2>{{ entities[name].plural }} <span class="muted">({{ total }})</span></h2>
+    <a href="/web/{{ entities[name].slug }}?q={{ q | urlencode }}">See all →</a></div>
+  <div class="grid">{% for c in cards %}{{ card(c) }}{% endfor %}</div>
+</section>
+{% else %}
+<div class="empty"><p>Nothing matches “{{ q }}”.</p><a class="btn" href="/">Back home</a></div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,28 @@
+from datetime import date
+from pydantic import BaseModel, ConfigDict
+
+{% for entity in entities %}
+class {{ entity.name }}Base(BaseModel):
+{% for attr in entity.attributes if not attr.primary_key %}
+    {{ attr.name }}: {% if attr.type == "integer" %}int{% elif attr.type == "string" %}str{% elif attr.type == "boolean" %}bool{% elif attr.type == "float" %}float{% elif attr.type == "date" %}date{% endif %}{% if not attr.required %}{% if attr.default is not none %} = {% if attr.type == "boolean" %}{{ "True" if attr.default | lower == "true" else "False" }}{% elif attr.type in ["integer", "float"] %}{{ attr.default }}{% else %}{{ attr.default | tojson }}{% endif %}{% else %} | None = None{% endif %}{% endif %}
+{% endfor %}
+
+
+class {{ entity.name }}Create({{ entity.name }}Base):
+    pass
+
+
+class {{ entity.name }}Update(BaseModel):
+{% for attr in entity.attributes if not attr.primary_key %}
+    {{ attr.name }}: {% if attr.type == "integer" %}int{% elif attr.type == "string" %}str{% elif attr.type == "boolean" %}bool{% elif attr.type == "float" %}float{% elif attr.type == "date" %}date{% endif %} | None = None
+{% endfor %}
+
+
+class {{ entity.name }}Read({{ entity.name }}Base):
+    model_config = ConfigDict(from_attributes=True)
+{% for attr in entity.attributes if attr.primary_key %}
+    {{ attr.name }}: int
+{% endfor %}
+
+
+{% endfor %}

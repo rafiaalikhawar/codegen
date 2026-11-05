@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Project | SLM-CodeGen{% endblock %}
+{% block content %}
+<p><a href="/">← Projects</a></p>
+<h1 id="title">Project</h1>
+<div id="flash" class="flash" hidden></div>
+
+<section class="card"><h2>1 · Domain model</h2>
+  <div id="nl-section" hidden>
+    <label>Natural-language requirements <textarea id="req" rows="4"></textarea></label>
+    <button class="btn" id="extract">Ask the SLM for a domain model</button>
+    <p class="muted">The result is only a <b>proposal</b>. You must review and approve it before anything is generated.</p>
+  </div>
+  <label>Domain model XML (editable) <textarea id="xml" rows="16" spellcheck="false"></textarea></label>
+  <button class="btn" id="save">Save &amp; validate</button>
+  <input type="file" id="upload" accept=".xml,text/xml"> <span class="muted">replace with an XML file</span>
+</section>
+
+<section class="card"><h2>2 · Validation &amp; preview</h2>
+  <div id="validation"></div><div id="preview"></div></section>
+
+<section class="card"><h2>3 · Approval</h2>
+  <p id="approval-state"></p><button class="btn" id="approve">Approve this model</button>
+  <p class="muted">Editing the XML after approval withdraws the approval.</p></section>
+
+<section class="card"><h2>4 · SLM provider</h2>
+  <div id="slm-env" class="muted"></div>
+  <label>Provider <select id="provider"><option>none</option><option>ollama</option><option>lmstudio</option></select></label>
+  <label>Model <input id="model" list="models" placeholder="e.g. mistral:latest"></label><datalist id="models"></datalist>
+  <button class="btn secondary" id="save-slm">Save SLM settings</button></section>
+
+<section class="card"><h2>5 · Generate</h2>
+  <label class="inline"><input type="checkbox" id="use-slm"> Use the SLM to interpret text-only business rules</label>
+  <button class="btn" id="generate">Generate website</button>
+  <div id="gen-out"></div></section>
+
+<section class="card"><h2>6 · Generated files</h2><div id="files" class="muted">Nothing generated yet.</div>
+  <pre id="file-view" hidden></pre></section>
+
+<section class="card"><h2>7 · Run &amp; test</h2>
+  <button class="btn" id="launch">Launch app</button> <button class="btn secondary" id="stop">Stop</button>
+  <button class="btn secondary" id="test">Run functional tests</button>
+  <div id="run-out"></div>
+  <p class="muted">Manual start: <code id="manual"></code></p></section>
+
+<section class="card"><h2>8 · Metrics</h2><div id="metrics" class="muted">–</div></section>
+{% endblock %}
+{% block scripts %}<script>window.PID = "{{ pid }}";</script><script src="/static/project.js"></script>{% endblock %}

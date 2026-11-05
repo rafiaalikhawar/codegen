@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% raw %}{% block title %}{% endblock %}{% endraw %} | {{ domain_name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar">
+            <a class="brand" href="/">{{ domain_name }}</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                {% for entity in entities %}
+                <a href="/web/{{ entity.name | lower }}">{{ entity.name }}s</a>
+                {% endfor %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% raw %}{% block content %}{% endblock %}{% endraw %}
+    </main>
+
+    <footer class="site-footer">
+        <p>Powered by SLM-CodeGen</p>
+    </footer>
+</body>
+</html>

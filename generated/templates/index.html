@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <h1>Welcome to LibraryManagement</h1>
+    <p>Manage your application from one place.</p>
+</section>
+
+<section class="dashboard">
+    <h2>Explore Sections</h2>
+
+    <div class="card-grid">
+        
+        <div class="card">
+            <h3>Books</h3>
+            <p>View and manage book records.</p>
+            <a class="card-button"
+               href="/web/book">
+                Open Books
+            </a>
+        </div>
+        
+        <div class="card">
+            <h3>Members</h3>
+            <p>View and manage member records.</p>
+            <a class="card-button"
+               href="/web/member">
+                Open Members
+            </a>
+        </div>
+        
+    </div>
+</section>
+
+{% endblock %}
+

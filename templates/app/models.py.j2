@@ -1,0 +1,60 @@
+"""SQLAlchemy models for {{ domain_name }} (generated - do not edit by hand)."""
+from datetime import date, datetime
+
+from sqlalchemy import (Boolean, Column, Date, DateTime, Float, ForeignKey,
+                        Integer, String, Table, Text)
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    pass
+
+{% for rel in m2m_relationships %}
+
+{{ rel.assoc.table }} = Table(
+    "{{ rel.assoc.table }}",
+    Base.metadata,
+    Column("{{ rel.assoc.from_col }}", Integer, ForeignKey("{{ rel.from_table }}.{{ rel.from_pk }}", ondelete="CASCADE"), primary_key=True),
+    Column("{{ rel.assoc.to_col }}", Integer, ForeignKey("{{ rel.to_table }}.{{ rel.to_pk }}", ondelete="CASCADE"), primary_key=True),
+)
+{% endfor %}
+{% for entity in entities %}
+
+
+class {{ entity.name }}(Base):
+    __tablename__ = "{{ entity.table }}"
+
+{% for f in entity.columns %}
+    {{ f.name }} = Column(
+        {{ f.sa_type }},
+{% if f.fk %}
+        ForeignKey("{{ f.fk.target_table }}.{{ f.fk.target_pk }}"),
+{% endif %}
+{% if f.pk %}
+        primary_key=True,
+        autoincrement=True,
+{% else %}
+        nullable={{ f.nullable }},
+{% endif %}
+{% if f.unique %}
+        unique=True,
+{% endif %}
+{% if f.py_default is not none %}
+        default={{ f.py_default }},
+{% endif %}
+    )
+{% endfor %}
+{% endfor %}
+
+
+MODELS = {
+{% for entity in entities %}
+    "{{ entity.name }}": {{ entity.name }},
+{% endfor %}
+}
+
+ASSOCIATION_TABLES = {
+{% for rel in m2m_relationships %}
+    "{{ rel.name }}": {{ rel.assoc.table }},
+{% endfor %}
+}

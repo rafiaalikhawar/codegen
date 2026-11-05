@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="OnlineShop">
+    <entities>
+        <entity name="Customer">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="email" required="true" unique="true"/>
+        </entity>
+        <entity name="Product">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="sku" type="string" required="true" unique="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="price" type="float" required="true"/>
+            <attribute name="stock" type="integer" default="0"/>
+            <attribute name="active" type="boolean" default="true"/>
+        </entity>
+        <entity name="PurchaseOrder" plural="Purchase orders">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="placed_on" type="date" required="true"/>
+            <attribute name="status" type="string" default="pending" choices="pending,paid,shipped"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="PurchaseOrder" to="Customer" type="many-to-one" name="placed_by" required="true"/>
+        <relationship from="PurchaseOrder" to="Product" type="many-to-many" name="contains"/>
+    </relationships>
+    <constraints>
+        <constraint id="price_positive" entity="Product" type="business-rule" pattern="numeric_range"
+                    attribute="price" min="0">
+            A product price cannot be negative.
+        </constraint>
+        <constraint id="stock_nonneg" entity="Product" type="business-rule" pattern="numeric_range"
+                    attribute="stock" min="0">
+            Stock cannot be negative.
+        </constraint>
+        <constraint id="active_products_only" entity="Product" type="business-rule" pattern="link_requires_value"
+                    relationship="contains" side="to" attribute="active" value="true">
+            Only active products can be added to an order.
+        </constraint>
+    </constraints>
+</domain>

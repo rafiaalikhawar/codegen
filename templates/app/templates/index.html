@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_cards.html" import card, icon %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">{{ meta.title }}</p>
+    <h1>Everything in one place.</h1>
+    <p class="lead">Browse, search and manage {{ entities.values() | map(attribute="plural") | map("lower") | join(", ") }}.</p>
+    <form action="/search" method="get" class="hero-search" role="search">
+      <input type="search" name="q" placeholder="Search everything…" aria-label="Search everything" required>
+      <button class="btn" type="submit">Search</button>
+    </form>
+  </div>
+  <div class="stats">
+    {% for name, e in entities.items() %}
+    <a class="stat" href="/web/{{ e.slug }}">{{ icon(e.ui.icon_svg) }}<strong>{{ counts[name] }}</strong><span>{{ e.plural }}</span></a>
+    {% endfor %}
+  </div>
+</section>
+
+{% for name, e in entities.items() %}
+<section class="shelf">
+  <div class="shelf-head">
+    <h2>{{ e.plural }}</h2>
+    <a href="/web/{{ e.slug }}">View all →</a>
+  </div>
+  {% if latest[name] %}
+  <div class="grid">{% for c in latest[name] %}{{ card(c) }}{% endfor %}</div>
+  {% else %}
+  <div class="empty small"><p>No {{ e.plural | lower }} yet.</p>
+    {% if "create" in e.operations %}<a class="btn" href="/web/{{ e.slug }}/new">Add the first {{ e.label | lower }}</a>{% endif %}</div>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

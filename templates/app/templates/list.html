@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "_cards.html" import card, icon %}
+{% block title %}{{ entity.plural }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><h1>{{ entity.plural }}</h1><p class="muted">{{ total }} {{ entity.label | lower if total == 1 else entity.plural | lower }}</p></div>
+  {% if "create" in entity.operations %}<a class="btn" href="/web/{{ entity.slug }}/new">+ Add {{ entity.label | lower }}</a>{% endif %}
+</section>
+
+<div class="toolbar">
+  <form method="get" class="search" role="search">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search {{ entity.plural | lower }}…" aria-label="Search">
+    {% for k, v in params.items() if k not in ("q", "page") %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  </form>
+  {% if entity.ui.sortable %}
+  <form method="get" class="sorter">
+    {% for k, v in params.items() if k not in ("sort", "dir", "page") %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <select name="sort" onchange="this.form.submit()" aria-label="Sort by">
+      <option value="">Newest first</option>
+      {% for f in entity.ui.sortable %}<option value="{{ f }}" {% if params.sort == f %}selected{% endif %}>{{ fields[f].label }}</option>{% endfor %}
+    </select>
+    <select name="dir" onchange="this.form.submit()" aria-label="Direction">
+      <option value="asc" {% if params.dir == "asc" %}selected{% endif %}>Ascending</option>
+      <option value="desc" {% if params.dir != "asc" %}selected{% endif %}>Descending</option>
+    </select>
+  </form>
+  {% endif %}
+  <div class="view-toggle" role="group" aria-label="View">
+    <button type="button" data-view="grid" aria-label="Grid view">▦</button>
+    <button type="button" data-view="table" aria-label="Table view">☰</button>
+  </div>
+</div>
+
+{% for fdef in filter_defs %}
+<div class="chips" aria-label="Filter by {{ fdef.label }}">
+  <span class="muted">{{ fdef.label }}:</span>
+  <a class="chip {% if not fdef.current %}on{% endif %}" href="{{ qs(params, **{fdef.param: None, 'page': None}) }}">All</a>
+  {% for value, text in fdef.options %}
+  <a class="chip {% if fdef.current == value %}on{% endif %}" href="{{ qs(params, **{fdef.param: value, 'page': None}) }}">{{ text }}</a>
+  {% endfor %}
+</div>
+{% endfor %}
+
+{% if rows %}
+<div class="view" data-entity="{{ entity.slug }}" data-view="grid">
+  <div class="grid view-grid">{% for r in rows %}{{ card(r.card) }}{% endfor %}</div>
+  <div class="table-wrap view-table">
+    <table>
+      <thead><tr>{% for column in columns %}<th>{{ column.label }}</th>{% endfor %}<th class="actions-col">Actions</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+      <tr>
+        {% for cell in r.cells %}
+        <td data-label="{{ cell.field.label }}">
+          {% if cell.link %}<a href="{{ cell.link }}">{{ cell.text }}</a>
+          {% elif cell.text is not none %}{{ cell.text }}{% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        {% endfor %}
+        <td class="actions">
+          <a href="/web/{{ entity.slug }}/{{ r.id }}">View</a>
+          {% if "update" in entity.operations %}<a href="/web/{{ entity.slug }}/{{ r.id }}/edit">Edit</a>{% endif %}
+          {% if "delete" in entity.operations %}
+          <form method="post" action="/web/{{ entity.slug }}/{{ r.id }}/delete" data-confirm="Delete this {{ entity.label | lower }}?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="link danger">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if pages > 1 %}
+<nav class="pager" aria-label="Pagination">
+  {% if page > 1 %}<a class="chip" href="{{ qs(params, page=page - 1) }}">← Previous</a>{% endif %}
+  <span class="muted">Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a class="chip" href="{{ qs(params, page=page + 1) }}">Next →</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<div class="empty">
+  <div class="empty-art">{{ icon(entity.ui.icon_svg) }}</div>
+  <h2>{% if q or filtered %}No matches{% else %}No {{ entity.plural | lower }} yet{% endif %}</h2>
+  <p class="muted">{% if q %}Nothing matches “{{ q }}”. Try another search.{% else %}Get started by adding your first {{ entity.label | lower }}.{% endif %}</p>
+  {% if "create" in entity.operations and not q %}<a class="btn" href="/web/{{ entity.slug }}/new">Create the first {{ entity.label | lower }}</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

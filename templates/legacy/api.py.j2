@@ -1,0 +1,85 @@
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+try:
+    from .models import Base, {% for entity in entities %}{{ entity.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+    from .schemas import (
+        {% for entity in entities %}
+        {{ entity.name }}Create,
+        {{ entity.name }}Update,
+        {{ entity.name }}Read,
+        {% endfor %}
+    )
+except ImportError:
+    from models import Base, {% for entity in entities %}{{ entity.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+    from schemas import (
+        {% for entity in entities %}
+        {{ entity.name }}Create,
+        {{ entity.name }}Update,
+        {{ entity.name }}Read,
+        {% endfor %}
+    )
+
+engine = create_engine("sqlite:///./generated_app.db")
+Base.metadata.create_all(engine)
+
+app = FastAPI(title="{{ domain_name }} API")
+
+
+{% for entity in entities %}
+@app.post("/{{ entity.name | lower }}", response_model={{ entity.name }}Read)
+def create_{{ entity.name | lower }}(data: {{ entity.name }}Create):
+    with Session(engine) as session:
+        obj = {{ entity.name }}(**data.model_dump(exclude_unset=True))
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)
+        return obj
+
+
+@app.get("/{{ entity.name | lower }}", response_model=list[{{ entity.name }}Read])
+def list_{{ entity.name | lower }}():
+    with Session(engine) as session:
+        return session.query({{ entity.name }}).all()
+
+
+@app.get("/{{ entity.name | lower }}/{item_id}", response_model={{ entity.name }}Read)
+def get_{{ entity.name | lower }}(item_id: int):
+    with Session(engine) as session:
+        obj = session.get({{ entity.name }}, item_id)
+        if obj is None:
+            raise HTTPException(status_code=404, detail="Not found")
+        return obj
+
+
+@app.put("/{{ entity.name | lower }}/{item_id}", response_model={{ entity.name }}Read)
+def update_{{ entity.name | lower }}(item_id: int, data: {{ entity.name }}Update):
+    with Session(engine) as session:
+        obj = session.get({{ entity.name }}, item_id)
+        if obj is None:
+            raise HTTPException(status_code=404, detail="Not found")
+
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(obj, key, value)
+
+        session.commit()
+        session.refresh(obj)
+        return obj
+
+
+@app.delete("/{{ entity.name | lower }}/{item_id}")
+def delete_{{ entity.name | lower }}(item_id: int):
+    with Session(engine) as session:
+        obj = session.get({{ entity.name }}, item_id)
+        if obj is None:
+            raise HTTPException(status_code=404, detail="Not found")
+
+        session.delete(obj)
+        session.commit()
+        return {"message": "Deleted successfully"}
+
+
+{% endfor %}

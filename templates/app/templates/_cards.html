@@ -1,0 +1,21 @@
+{% macro icon(svg) -%}
+<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ svg | safe }}</svg>
+{%- endmacro %}
+
+{% macro card(c) -%}
+<article class="pcard">
+  <a class="pimg" href="{{ c.url }}" style="--h: {{ c.hue }}" tabindex="-1" aria-hidden="true">
+    <span class="avatar">{{ c.initials }}</span>
+    {% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}
+  </a>
+  <div class="pbody">
+    {% if c.badges %}<div class="badges">{% for b in c.badges %}<span class="badge {{ b.kind }}">{{ b.text }}</span>{% endfor %}</div>{% endif %}
+    <h3><a href="{{ c.url }}">{{ c.title }}</a></h3>
+    {% for s in c.subtitles %}<p class="sub"><span>{{ s.label }}</span>{{ s.text }}</p>{% endfor %}
+    <div class="pfoot">
+      <span class="price">{{ c.price or "" }}</span>
+      <a class="chip-btn" href="{{ c.url }}">View</a>
+    </div>
+  </div>
+</article>
+{%- endmacro %}

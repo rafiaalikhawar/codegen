@@ -1,0 +1,9 @@
+{
+  "dev": [
+    {"id": "hospital_nl", "text": "Create a hospital website where patients can register, doctors can manage appointments, and administrators can view patient records.", "expected_entities": ["Patient", "Doctor", "Appointment"]}
+  ],
+  "eval": [
+    {"id": "school_nl", "text": "A school system that keeps students, teachers and courses. Students enroll in many courses and each course is taught by one teacher.", "expected_entities": ["Student", "Teacher", "Course"]},
+    {"id": "shop_nl", "text": "An online shop with customers, products and orders. A customer places many orders and an order contains many products. Products have a name, a price and stock.", "expected_entities": ["Customer", "Product", "Order"]}
+  ]
+}

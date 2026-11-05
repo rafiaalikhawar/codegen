@@ -1,0 +1,30 @@
+{% raw %}{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+{% endraw %}
+<section class="hero">
+    <h1>Welcome to {{ domain_name }}</h1>
+    <p>Manage your application from one place.</p>
+</section>
+
+<section class="dashboard">
+    <h2>Explore Sections</h2>
+
+    <div class="card-grid">
+        {% for entity in entities %}
+        <div class="card">
+            <h3>{{ entity.name }}s</h3>
+            <p>View and manage {{ entity.name | lower }} records.</p>
+            <a class="card-button"
+               href="/web/{{ entity.name | lower }}">
+                Open {{ entity.name }}s
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% raw %}
+{% endblock %}
+{% endraw %}

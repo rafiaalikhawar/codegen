@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="StudentManagement">
+    <entities>
+        <entity name="Student">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="email" required="true" unique="true"/>
+            <attribute name="gpa" type="float" default="0"/>
+            <attribute name="enrolled_on" type="date"/>
+        </entity>
+        <entity name="Course">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="code" type="string" required="true" unique="true"/>
+            <attribute name="title" type="string" required="true"/>
+            <attribute name="credits" type="integer" default="3"/>
+            <attribute name="status" type="string" default="open" choices="open,closed"/>
+        </entity>
+        <entity name="Teacher">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="office" type="string"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Student" to="Course" type="many-to-many" name="enrolls_in"/>
+        <relationship from="Teacher" to="Course" type="one-to-many" name="teaches"/>
+    </relationships>
+    <constraints>
+        <constraint id="gpa_range" entity="Student" type="business-rule" pattern="numeric_range"
+                    attribute="gpa" min="0" max="4">
+            GPA must be between 0 and 4.
+        </constraint>
+        <constraint id="open_courses_only" entity="Course" type="business-rule" pattern="link_requires_value"
+                    relationship="enrolls_in" side="to" attribute="status" value="open">
+            Students can only enroll in courses whose status is open.
+        </constraint>
+        <constraint id="course_load" entity="Student" type="business-rule" pattern="max_links"
+                    relationship="enrolls_in" side="from" max="5">
+            A student can enroll in at most 5 courses.
+        </constraint>
+    </constraints>
+</domain>

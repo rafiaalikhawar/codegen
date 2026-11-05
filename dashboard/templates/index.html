@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Projects | SLM-CodeGen{% endblock %}
+{% block content %}
+<h1>Projects</h1>
+<section class="card">
+  <h2>New project</h2>
+  <form id="new-form">
+    <label>Name <input name="name" required maxlength="80" placeholder="Hospital system"></label>
+    <label>Start from
+      <select name="mode"><option value="xml">An XML domain model (paste or upload)</option>
+      <option value="nl">Natural-language requirements (needs a local SLM)</option></select></label>
+    <div id="xml-box"><label>XML file <input type="file" id="xml-file" accept=".xml,text/xml"></label>
+      <label>or paste XML <textarea name="xml" rows="8" placeholder="&lt;domain name=&quot;...&quot;&gt;…"></textarea></label></div>
+    <div id="nl-box" hidden><label>Requirements <textarea name="requirements" rows="5"
+      placeholder="Create a hospital website where patients can register, doctors can manage appointments…"></textarea></label></div>
+    <button class="btn">Create project</button> <span id="msg" class="err"></span>
+  </form>
+</section>
+<section class="card"><h2>Existing projects</h2>
+{% if projects %}<table><tr><th>Name</th><th>Source</th><th>Status</th><th></th></tr>
+{% for p in projects %}<tr><td>{{ p.name }}</td><td>{{ p.origin }}</td><td>{{ p.status }}</td>
+<td><a href="/projects/{{ p.id }}">Open</a></td></tr>{% endfor %}</table>
+{% else %}<p class="muted">No projects yet.</p>{% endif %}</section>
+{% endblock %}
+{% block scripts %}<script>
+const f = document.getElementById('new-form');
+f.mode.addEventListener('change', () => {
+  document.getElementById('xml-box').hidden = f.mode.value !== 'xml';
+  document.getElementById('nl-box').hidden = f.mode.value !== 'nl';
+});
+document.getElementById('xml-file').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader(); r.onload = () => { f.xml.value = r.result; }; r.readAsText(file);
+});
+f.addEventListener('submit', async e => {
+  e.preventDefault();
+  const res = await fetch('/api/projects', {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name: f.name.value, mode: f.mode.value, xml: f.xml.value, requirements: f.requirements.value})});
+  const data = await res.json();
+  if (res.ok) location.href = '/projects/' + data.id; else document.getElementById('msg').textContent = JSON.stringify(data.detail);
+});
+</script>{% endblock %}

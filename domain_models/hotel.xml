@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="HotelBooking">
+    <entities>
+        <entity name="Guest">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="email" unique="true"/>
+        </entity>
+        <entity name="Room">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="number" type="string" required="true" unique="true"/>
+            <attribute name="rate" type="float" required="true"/>
+            <attribute name="maintenance" type="boolean" default="false"/>
+        </entity>
+        <entity name="Reservation">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="check_in" type="date" required="true"/>
+            <attribute name="check_out" type="date" required="true"/>
+            <attribute name="status" type="string" default="confirmed" choices="confirmed,checked_in,cancelled"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Reservation" to="Guest" type="many-to-one" name="made_by" required="true"/>
+        <relationship from="Reservation" to="Room" type="many-to-one" name="reserves" required="true"/>
+    </relationships>
+    <constraints>
+        <constraint id="stay_order" entity="Reservation" type="business-rule" pattern="date_order"
+                    earlier="check_in" later="check_out">
+            The check-out date must not be before the check-in date.
+        </constraint>
+        <constraint id="rate_positive" entity="Room" type="business-rule" pattern="numeric_range"
+                    attribute="rate" min="0">
+            A room rate cannot be negative.
+        </constraint>
+        <constraint id="no_same_room_day" entity="Reservation" type="business-rule" pattern="unique_together"
+                    attributes="room_id,check_in">
+            A room cannot have two reservations starting on the same day.
+        </constraint>
+    </constraints>
+</domain>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="LibraryManagement">
+    <entities>
+        <entity name="Book">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="title" type="string" required="true"/>
+            <attribute name="author" type="string" required="true"/>
+            <attribute name="available" type="boolean" default="true"/>
+        </entity>
+        <entity name="Member">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="string" required="true" unique="true"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Member" to="Book" type="many-to-many" name="borrows"/>
+    </relationships>
+    <constraints>
+        <constraint entity="Book" type="business-rule">
+            A book can only be borrowed when available is true.
+        </constraint>
+    </constraints>
+</domain>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="LibraryManagement">
+    <entities>
+        <entity name="Book">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="title" type="string" required="true"/>
+            <attribute name="author" type="string" required="true"/>
+            <attribute name="available" type="boolean" default="true"/>
+        </entity>
+        <entity name="Member">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="email" required="true" unique="true"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Member" to="Book" type="many-to-many" name="borrows"/>
+    </relationships>
+    <constraints>
+        <constraint id="book_available" entity="Book" type="business-rule" pattern="link_requires_value"
+                    relationship="borrows" side="to" attribute="available" value="true"
+                    set_on_link="false" set_on_unlink="true">
+            A book can only be borrowed when available is true.
+        </constraint>
+        <constraint id="loan_limit" entity="Member" type="business-rule" pattern="max_links"
+                    relationship="borrows" side="from" max="3">
+            A member can borrow at most 3 books at a time.
+        </constraint>
+    </constraints>
+</domain>

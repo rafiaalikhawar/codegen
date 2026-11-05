@@ -1,0 +1,53 @@
+{% raw %}{% extends "base.html" %}
+
+{% block title %}{{ entity_title }}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{{ entity_title }}</h1>
+        <p>View and manage your records.</p>
+    </div>
+    <a class="card-button" href="{{ create_url }}">
+        + Add New
+    </a>
+</section>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                {% for column in columns %}
+                <th>{{ column.label }}</th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in records %}
+            <tr>
+                {% for column in columns %}
+                <td>{{ item[column.name] }}</td>
+                {% endfor %}
+                <td>
+                    <a href="{{ edit_base_url }}/{{ item[primary_key] }}/edit">
+                        Edit
+                    </a>
+                    <form method="post"
+                          action="{{ delete_base_url }}/{{ item[primary_key] }}/delete"
+                          style="display:inline">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{{ columns | length + 1 }}">
+                    No records found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}{% endraw %}

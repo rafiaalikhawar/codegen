@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Demo: a modern online store. Not part of the benchmark splits. -->
+<domain name="NovaStore">
+    <entities>
+        <entity name="Product">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="image" type="image" label="Photo"/>
+            <attribute name="category" type="string" default="electronics" choices="electronics,home,fashion,sports"/>
+            <attribute name="description" type="text"/>
+            <attribute name="price" type="float" required="true"/>
+            <attribute name="stock" type="integer" default="0"/>
+            <attribute name="rating" type="float" default="4"/>
+            <attribute name="in_stock" type="boolean" default="true" label="In stock"/>
+        </entity>
+        <entity name="Customer">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true"/>
+            <attribute name="email" type="email" required="true" unique="true"/>
+            <attribute name="phone" type="string"/>
+        </entity>
+        <entity name="PurchaseOrder" plural="Orders" label="Order">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="placed_on" type="date" required="true"/>
+            <attribute name="status" type="string" default="pending" choices="pending,paid,shipped,delivered"/>
+            <attribute name="total" type="float" default="0"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="PurchaseOrder" to="Customer" type="many-to-one" name="placed_by" required="true" label="Customer"/>
+        <relationship from="PurchaseOrder" to="Product" type="many-to-many" name="contains" label="Products"/>
+    </relationships>
+    <constraints>
+        <constraint id="price_positive" entity="Product" type="business-rule" pattern="numeric_range" attribute="price" min="0">
+            A product price cannot be negative.
+        </constraint>
+        <constraint id="rating_range" entity="Product" type="business-rule" pattern="numeric_range" attribute="rating" min="0" max="5">
+            Ratings are between 0 and 5.
+        </constraint>
+        <constraint id="stock_nonneg" entity="Product" type="business-rule" pattern="numeric_range" attribute="stock" min="0">
+            Stock cannot be negative.
+        </constraint>
+        <constraint id="in_stock_only" entity="Product" type="business-rule" pattern="link_requires_value"
+                    relationship="contains" side="to" attribute="in_stock" value="true">
+            Only products that are in stock can be added to an order.
+        </constraint>
+    </constraints>
+</domain>

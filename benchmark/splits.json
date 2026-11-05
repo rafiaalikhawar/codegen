@@ -1,0 +1,5 @@
+{
+  "description": "Domain models used by the benchmark. 'dev' domains may be used to tune prompts/templates; 'eval' domains are held out and must not be used during development.",
+  "dev": ["library_structured", "hospital"],
+  "eval": ["student", "ecommerce", "inventory", "hotel"]
+}

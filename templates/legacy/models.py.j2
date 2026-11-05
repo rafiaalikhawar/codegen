@@ -1,0 +1,21 @@
+from sqlalchemy import Column, Integer, String, Boolean, Float, Date
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+{% for entity in entities %}
+class {{ entity.name }}(Base):
+    __tablename__ = "{{ entity.name | lower }}"
+
+{% for attr in entity.attributes %}
+    {{ attr.name }} = Column(
+        {% if attr.type == "integer" %}Integer{% elif attr.type == "string" %}String(255){% elif attr.type == "boolean" %}Boolean{% elif attr.type == "float" %}Float{% elif attr.type == "date" %}Date{% endif %},
+        primary_key={{ attr.primary_key }},
+        nullable={{ not (attr.required or attr.primary_key) }},
+        unique={{ attr.unique }}{% if attr.default is not none %},
+        default={% if attr.type == "boolean" %}{{ attr.default | lower | replace("true", "True") | replace("false", "False") }}{% elif attr.type in ["integer", "float"] %}{{ attr.default }}{% else %}{{ attr.default | tojson }}{% endif %}{% endif %}
+    )
+
+{% endfor %}
+
+{% endfor %}

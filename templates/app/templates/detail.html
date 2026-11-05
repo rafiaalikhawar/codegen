@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_cards.html" import card, icon %}
+{% block title %}{{ view.title }}{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/">Home</a> / <a href="/web/{{ entity.slug }}">{{ entity.plural }}</a> / <span>{{ view.title }}</span></nav>
+<section class="detail-hero">
+  <div class="detail-img" style="--h: {{ view.hue }}"><span class="avatar big">{{ view.initials }}</span>
+    {% if view.image %}<img src="{{ view.image }}" alt="" onerror="this.remove()">{% endif %}</div>
+  <div class="detail-main">
+    {% if view.badges %}<div class="badges">{% for b in view.badges %}<span class="badge {{ b.kind }}">{{ b.text }}</span>{% endfor %}</div>{% endif %}
+    <h1>{{ view.title }}</h1>
+    {% if view.price %}<p class="price big">{{ view.price }}</p>{% endif %}
+    <div class="header-actions">
+      {% if "update" in entity.operations %}<a class="btn" href="/web/{{ entity.slug }}/{{ item_id }}/edit">Edit</a>{% endif %}
+      {% if "delete" in entity.operations %}
+      <form method="post" action="/web/{{ entity.slug }}/{{ item_id }}/delete" data-confirm="Delete this {{ entity.label | lower }}?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn danger-soft">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+    <dl class="details">
+      {% for cell in cells %}
+      <dt>{{ cell.field.label }}</dt>
+      <dd>{% if cell.link %}<a href="{{ cell.link }}">{{ cell.text }}</a>{% elif cell.text is not none %}{{ cell.text }}{% else %}<span class="muted">—</span>{% endif %}</dd>
+      {% endfor %}
+    </dl>
+  </div>
+</section>
+
+{% for s in sections %}
+<section class="panel">
+  <h2>{{ s.label | capitalize }} <span class="muted">({{ s.linked | length }})</span></h2>
+  {% if s.linked %}
+  <ul class="link-list">
+    {% for o, label, oid in s.linked %}
+    <li>
+      <a href="/web/{{ s.other.slug }}/{{ oid }}">{{ label }}</a>
+      {% if s.kind == "m2m" %}
+      <form method="post" action="/web/{{ entity.slug }}/{{ item_id }}/unlink/{{ s.rel }}/{{ oid }}" data-confirm="Remove this link?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="link danger">Remove</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">Nothing here yet.</p>{% endif %}
+  {% if s.kind == "m2m" %}
+  <form method="post" action="/web/{{ entity.slug }}/{{ item_id }}/link/{{ s.rel }}" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <select name="target_id" required aria-label="Record to link">
+      <option value="">Add {{ s.other.label | lower }}…</option>
+      {% for value, label in s.candidates %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn secondary">Add</button>
+  </form>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

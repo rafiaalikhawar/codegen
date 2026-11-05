@@ -1,0 +1,38 @@
+"""Pydantic schemas for {{ domain_name }} (generated - do not edit by hand)."""
+from datetime import date, datetime
+from typing import Annotated, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+{% for entity in entities %}
+
+
+class {{ entity.name }}Create(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+{% for f in entity.inputs %}
+    {{ f.name }}: {{ f.create_annotation }}{% if f.create_default is not none %} = {{ f.create_default }}{% endif %}
+
+{% endfor %}
+{% if not entity.inputs %}
+    pass
+{% endif %}
+
+
+class {{ entity.name }}Update(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+{% for f in entity.inputs %}
+    {{ f.name }}: Optional[{{ f.update_annotation }}] = None
+{% endfor %}
+{% if not entity.inputs %}
+    pass
+{% endif %}
+
+
+class {{ entity.name }}Read(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+{% for f in entity.columns %}
+    {{ f.name }}: {{ f.read_annotation }}{% if not f.pk %} = None{% endif %}
+
+{% endfor %}
+{% endfor %}

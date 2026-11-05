@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain name="HospitalManagement">
+    <entities>
+        <entity name="Department">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="name" type="string" required="true" unique="true"/>
+            <attribute name="floor" type="integer" default="1"/>
+        </entity>
+        <entity name="Doctor">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="full_name" type="string" required="true" label="Full name"/>
+            <attribute name="specialty" type="string" required="true"/>
+            <attribute name="email" type="email" unique="true"/>
+        </entity>
+        <entity name="Patient">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="full_name" type="string" required="true" label="Full name"/>
+            <attribute name="birth_date" type="date"/>
+            <attribute name="phone" type="string"/>
+            <attribute name="blood_group" type="string" choices="A+,A-,B+,B-,AB+,AB-,O+,O-"/>
+        </entity>
+        <entity name="Appointment">
+            <attribute name="id" type="integer" primaryKey="true"/>
+            <attribute name="appointment_date" type="date" required="true"/>
+            <attribute name="reason" type="text"/>
+            <attribute name="status" type="string" default="scheduled" choices="scheduled,completed,cancelled"/>
+            <attribute name="fee" type="float" default="0"/>
+        </entity>
+    </entities>
+    <relationships>
+        <relationship from="Department" to="Doctor" type="one-to-many" name="employs"/>
+        <relationship from="Appointment" to="Patient" type="many-to-one" name="booked_by" required="true"/>
+        <relationship from="Appointment" to="Doctor" type="many-to-one" name="attended_by" required="true"/>
+    </relationships>
+    <constraints>
+        <constraint id="fee_range" entity="Appointment" type="business-rule" pattern="numeric_range"
+                    attribute="fee" min="0" max="100000">
+            An appointment fee cannot be negative.
+        </constraint>
+        <constraint id="no_double_booking" entity="Appointment" type="business-rule" pattern="unique_together"
+                    attributes="doctor_id,appointment_date">
+            A doctor cannot have two appointments on the same date.
+        </constraint>
+        <constraint id="keep_patient_history" entity="Patient" type="business-rule" pattern="forbid_delete_if_linked"
+                    relationship="booked_by">
+            A patient with appointments cannot be deleted.
+        </constraint>
+    </constraints>
+    <operations>
+        <operation entity="Appointment" allow="create,read,update,delete"/>
+    </operations>
+</domain>
