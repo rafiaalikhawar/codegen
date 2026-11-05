@@ -63,15 +63,21 @@ def _windows_peak_mb():
 
     c = Counters()
     c.cb = ctypes.sizeof(c)
-    kernel = ctypes.windll.kernel32
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel.GetCurrentProcess.restype = wintypes.HANDLE
-    ok = ctypes.windll.psapi.GetProcessMemoryInfo(kernel.GetCurrentProcess(), ctypes.byref(c), c.cb)
+    fn = kernel.K32GetProcessMemoryInfo  # kernel32 export of psapi's GetProcessMemoryInfo
+    fn.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+    fn.restype = wintypes.BOOL
+    ok = fn(kernel.GetCurrentProcess(), ctypes.byref(c), c.cb)
     return round(c.PeakWorkingSetSize / (1024 * 1024), 1) if ok else 0.0
 
 
 def peak_rss_mb():
     if resource is None:
-        return _windows_peak_mb()
+        try:
+            return _windows_peak_mb()
+        except (OSError, AttributeError, ValueError, TypeError):
+            return 0.0
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return round(rss / (1024 * 1024) if sys.platform == "darwin" else rss / 1024, 1)
 
