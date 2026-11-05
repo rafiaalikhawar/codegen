@@ -8,7 +8,10 @@ import copy
 import csv
 import json
 import os
-import resource
+try:
+    import resource  # Unix only
+except ImportError:  # Windows
+    resource = None
 import socket
 import statistics
 import subprocess
@@ -47,7 +50,28 @@ def strip_patterns(model):
     return m
 
 
+def _windows_peak_mb():
+    import ctypes
+    from ctypes import wintypes
+
+    class Counters(ctypes.Structure):
+        _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t)]
+
+    c = Counters()
+    c.cb = ctypes.sizeof(c)
+    kernel = ctypes.windll.kernel32
+    kernel.GetCurrentProcess.restype = wintypes.HANDLE
+    ok = ctypes.windll.psapi.GetProcessMemoryInfo(kernel.GetCurrentProcess(), ctypes.byref(c), c.cb)
+    return round(c.PeakWorkingSetSize / (1024 * 1024), 1) if ok else 0.0
+
+
 def peak_rss_mb():
+    if resource is None:
+        return _windows_peak_mb()
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return round(rss / (1024 * 1024) if sys.platform == "darwin" else rss / 1024, 1)
 
